@@ -9,14 +9,14 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("./fonts/roboto.woff2") format("woff2");
+  src: url("/fonts/roboto.woff2") format("woff2");
 }
 @font-face {
   font-family: "Roboto Mono";
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
-  src: url("./fonts/roboto-mono.woff2") format("woff2");
+  src: url("/fonts/roboto-mono.woff2") format("woff2");
 }
 
 /* ---------- page tokens ---------- */
@@ -46,7 +46,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Inverted surfaces: flip component borders (and the timeline fill) to ground so
+/* Inverted surfaces: flip component borders to ground so
    cards, tables and the career bars read correctly on an ink section. Regular
    chips already use currentColor, so they invert for free. */
 .dc-invert .section-head,
@@ -66,15 +66,11 @@ body {
 .dc-invert .dc-table caption,
 .dc-invert .dc-table th,
 .dc-invert .dc-table td,
-.dc-invert .dc-table thead th,
-.dc-invert .evidence-teaser {
+.dc-invert .dc-table thead th {
   border-color: var(--ground);
 }
 .dc-invert .tl-row {
   border-top-color: var(--ground);
-}
-.dc-invert .tl-fill {
-  background: var(--ground);
 }
 /* an inverted full-section reads as a band, so it needs symmetric padding */
 .section.dc-invert {
@@ -692,23 +688,6 @@ body {
 }
 
 
-/* ---------- evidence-teaser row on the hub ---------- */
-.evidence-teaser {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: clamp(16px, 3vw, 32px);
-  flex-wrap: wrap;
-  border: var(--rule-base) solid var(--ink);
-  padding: clamp(20px, 3vw, 32px);
-}
-.evidence-teaser p {
-  margin: 0;
-  font-size: clamp(18px, 1.8vw, 24px);
-  font-weight: 300;
-  line-height: 1.35;
-  max-width: 32ch;
-}
 
 /* =====================================================================
    Layer 4: responsive system + accessible mobile nav + motion
@@ -825,13 +804,13 @@ body {
   .js .reveal.in-view .section-head {
     transform: scaleX(1);
   }
-  /* timeline bars draw left-to-right (they encode duration over time) */
-  .js .timeline .tl-fill {
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.6s ease;
-  }
-  .js .timeline.in-view .tl-fill {
-    transform: scaleX(1);
+}
+
+/* ---------- print: whatever the reveal layer hid is shown in full ---------- */
+@media print {
+  .js .reveal,
+  .js .reveal .section-head {
+    opacity: 1;
+    transform: none;
   }
 }

@@ -1,19 +1,23 @@
 // 1-bit dither fields — pure #000/#fff, no greys. Tone is carried entirely by an
 // 8x8 Bayer threshold (the Duochrome hatch device), never by alpha or grey fills.
 //
-// Two custom elements share ONE guarded WebGL harness (Field1Bit):
-//   <hatch-field>  — the hero's ordered-dither flow field (+ optional portrait src).
-//   <dither-field> — an ambient domain-warped "plate-mark" field for the contact band.
+// Custom elements sharing ONE guarded WebGL harness (Field1Bit):
+//   <metaball-field> — the hero's metaball/curl-flow panel; moves only under the pointer.
+//   <dither-field>   — a static domain-warped "plate-mark" for the contact band.
+//   <card-field>     — a pointer halo for ink cards.
 //
 // The dither math (hash/value-noise/fbm/Bayer) lives once in LIB and is prepended to
-// every fragment shader — the reusable *math* is what we keep. The Bayer recursion is
-// after basement.studio's shader-lab dither-textures (Apache-2.0) — function only, no
-// framework: no three.js, no WebGPU, ~5 KB of raw WebGL 1 with a graceful null-context
-// fallback. Each field: compute a scalar in [0,1], dither the threshold, step() to
-// pure black or white. Guards (WCAG/perf): 30 fps cap, off-screen + hidden-tab pause,
-// live prefers-reduced-motion freeze, and a Pause control outside the aria-hidden root.
+// every fragment shader. The Bayer recursion is after basement.studio's shader-lab
+// dither-textures (Apache-2.0) — function only, no framework: raw WebGL 1.
+//
+// Motion is interaction-gated: nothing auto-plays, so WCAG 2.2.2 needs no Pause control.
+// The rAF loop runs ONLY while a field still has motion to show; it stops when the field
+// settles, scrolls off-screen, the tab hides, or prefers-reduced-motion is set, and it
+// re-arms from pointer wake, IntersectionObserver entry, visibilitychange and the
+// reduced-motion query. A null context, a failed shader link or a lost context all fall
+// back to the container's own (ink) background.
 (function () {
-  if (customElements.get('hatch-field')) return;
+  if (customElements.get('metaball-field')) return;
 
   // Shared GLSL prelude — the 1-bit dither kernel, defined once (DRY).
   const LIB = `precision highp float;
@@ -27,21 +31,27 @@ float dither8(vec2 b){return ((bayer2(b*.25)*.25+bayer2(b*.5))*.25+bayer2(b))*1.
   const VERT = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
   // ── Base harness ───────────────────────────────────────────────────────────
-  // Owns the whole lifecycle; a subclass supplies FRAG (its scalar field) + the
-  // uniform names it needs, and may override the knobs / hooks below.
+  // One-time GL setup (_setup) is split from attach/detach, so an element that is
+  // removed and re-inserted re-arms its observers and loop. A subclass supplies FRAG +
+  // UNIFORMS and may override the knobs and hooks below.
   class Field1Bit extends HTMLElement {
     // knobs — subclasses override
     get maxDPR() { return 2; }
     get fps() { return 30; }
-    get animated() { return true; }               // false → draw one static frame, no RAF
-    get preserveBuffer() { return !this.animated; } // static canvases must persist across repaints
-    get usesPointer() { return false; }
     get pointerHome() { return [0.5, 0.5]; }
-    get toggleAttr() { return 'data-motion-toggle'; }
+    get staticTime() { return 0; }
+    // true while the field still has motion to show; the loop stops when it turns false
+    get wantsFrames() { return false; }
 
     connectedCallback() {
-      if (this._init) return;
-      this._init = true;
+      if (!this._setupDone) this._setup();
+      if (this.gl) this._attach();
+    }
+
+    disconnectedCallback() { this._detach(); }
+
+    _setup() {
+      this._setupDone = true;
       this.style.display = 'block';
       this.style.position = this.style.position || 'absolute';
       this.style.inset = this.style.inset || '0';
@@ -51,21 +61,24 @@ float dither8(vec2 b){return ((bayer2(b*.25)*.25+bayer2(b*.5))*.25+bayer2(b))*1.
       this.appendChild(c);
       this.canvas = c;
 
-      const gl = c.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'low-power', preserveDrawingBuffer: this.preserveBuffer });
-      if (!gl) { this.style.background = '#fff'; return; }
-      this.gl = gl;
+      const gl = c.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'low-power', preserveDrawingBuffer: true });
+      if (!gl) return this._fallback();
 
       const sh = (type, src) => {
         const s = gl.createShader(type);
         gl.shaderSource(s, src); gl.compileShader(s);
-        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.warn(gl.getShaderInfoLog(s));
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS) && !gl.isContextLost()) console.warn(gl.getShaderInfoLog(s));
         return s;
       };
       const prog = gl.createProgram();
       gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
       gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, LIB + '\n' + this.constructor.FRAG));
-      gl.linkProgram(prog); gl.useProgram(prog);
-      this.prog = prog;
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        if (!gl.isContextLost()) console.warn(gl.getProgramInfoLog(prog));
+        return this._fallback();
+      }
+      gl.useProgram(prog);
 
       const buf = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buf);
@@ -76,77 +89,109 @@ float dither8(vec2 b){return ((bayer2(b*.25)*.25+bayer2(b*.5))*.25+bayer2(b))*1.
 
       this.u = {};
       for (const name of this.constructor.UNIFORMS) this.u[name] = gl.getUniformLocation(prog, name);
+      this.gl = gl;
 
-      if (this.onInit) this.onInit(gl); // subclass extras (e.g. textures)
+      // A lost context gets the same fallback as no context at all.
+      c.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this._detach(); this._fallback(); });
 
-      if (this.usesPointer) {
-        this.pointer = this.pointerHome.slice();
-        this._target = this.pointerHome.slice();
-        this._onMove = (e) => {
-          const r = this.getBoundingClientRect();
-          this._target = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height];
-        };
-        this._onLeave = () => { this._target = this.pointerHome.slice(); };
-        this.addEventListener('pointermove', this._onMove);
-        this.addEventListener('pointerleave', this._onLeave);
-      } else {
-        this.pointer = this.pointerHome.slice();
-      }
+      this.pointer = this.pointerHome.slice();
+      this._target = this.pointer.slice();
+      this._interval = 1000 / this.fps;
+      this._mq = matchMedia('(prefers-reduced-motion: reduce)');
+      if (this.onInit) this.onInit(gl);
+    }
+
+    // Hide the canvas: the container's own background (ink) shows through.
+    _fallback() {
+      this.gl = null;
+      if (this.canvas) this.canvas.style.display = 'none';
+    }
+
+    _attach() {
+      if (this._attached) return;
+      this._attached = true;
+      this._visible = true;
+      this._reduced = this._mq.matches;
+
+      this._onMove = (e) => {
+        const r = this.getBoundingClientRect();
+        this._target = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height];
+        this._wake(true);
+      };
+      this._onEnter = () => this._wake(true);
+      this._onLeave = () => { this._target = this.pointerHome.slice(); this._wake(false); };
+      this.addEventListener('pointerenter', this._onEnter);
+      this.addEventListener('pointermove', this._onMove);
+      this.addEventListener('pointerleave', this._onLeave);
 
       this._ro = new ResizeObserver(() => this.resize());
       this._ro.observe(this);
-      this.resize();
-
       this._io = new IntersectionObserver((es) => {
-        this._visible = es[0].isIntersecting;
-        // A static plate redraws its one frame on re-entry — cheap insurance against
-        // any compositor dropping the preserved buffer after it scrolled away.
-        if (this._visible && !this.animated) this.draw(this._staticTime());
+        this._visible = es[es.length - 1].isIntersecting;
+        if (this._visible) { this.draw(); this._arm(); }
       }, { threshold: 0 });
       this._io.observe(this);
-      this._visible = true;
 
-      // Reduced-motion re-evaluated live (not sampled once) so a mid-session OS
-      // toggle takes effect immediately (WCAG 2.3.3 / 2.2.2).
-      this._paused = false;
-      this._mq = matchMedia('(prefers-reduced-motion: reduce)');
-      this._reduced = this._mq.matches;
-      this._onMQ = (e) => {
-        this._reduced = e.matches;
-        if (this._toggle) this._toggle.hidden = e.matches; // nothing to pause when motion is off
-        if (e.matches) this.draw(this._staticTime()); // freeze on a static frame
-      };
+      // Reduced motion is re-evaluated live, so a mid-session OS toggle applies at once.
+      this._onMQ = (e) => { this._reduced = e.matches; this.draw(); this._arm(); };
       this._mq.addEventListener('change', this._onMQ);
+      this._onVis = () => { if (!document.hidden) this._arm(); };
+      document.addEventListener('visibilitychange', this._onVis);
 
-      // WCAG 2.2.2 Pause, Stop, Hide — a control for ALL users, not only those
-      // with the OS flag. It lives OUTSIDE this aria-hidden element, so it is
-      // exposed to assistive tech.
-      const toggle = this.parentElement && this.parentElement.querySelector('[' + this.toggleAttr + ']');
-      if (toggle) {
-        this._toggle = toggle;
-        toggle.hidden = this._reduced;
-        toggle.addEventListener('click', () => {
-          this._paused = !this._paused;
-          toggle.setAttribute('aria-pressed', String(this._paused));
-          toggle.textContent = this._paused ? 'Play motion' : 'Pause motion';
-        });
+      this.resize();
+      this.draw();
+    }
+
+    _detach() {
+      if (!this._attached) return;
+      this._attached = false;
+      cancelAnimationFrame(this._raf);
+      this._raf = 0;
+      this._ro.disconnect();
+      this._io.disconnect();
+      this._mq.removeEventListener('change', this._onMQ);
+      document.removeEventListener('visibilitychange', this._onVis);
+      this.removeEventListener('pointerenter', this._onEnter);
+      this.removeEventListener('pointermove', this._onMove);
+      this.removeEventListener('pointerleave', this._onLeave);
+    }
+
+    _wake(active) {
+      this._active = active;
+      this._arm();
+    }
+
+    _canRun() {
+      return !!this.gl && this._attached && this._visible && !this._reduced && !document.hidden && this.wantsFrames;
+    }
+
+    // The single entry point that starts the loop; a no-op if it is already running.
+    _arm() {
+      if (this._raf || !this._canRun()) return;
+      this._last = performance.now();
+      this._raf = requestAnimationFrame(this.frame);
+    }
+
+    // One rAF tick. Re-arms itself only while the field still wants frames.
+    frame = (now) => {
+      this._raf = 0;
+      if (!this._canRun()) { this.draw(); return; } // settle on a final resting frame
+      const dt = now - this._last;
+      if (dt >= this._interval) { // frame-rate cap (perf + seizure safety)
+        this._last = now;
+        this.step(Math.min(dt, 100) / 1000);
+        this.pointer[0] += (this._target[0] - this.pointer[0]) * 0.07;
+        this.pointer[1] += (this._target[1] - this.pointer[1]) * 0.07;
+        this.draw();
       }
+      this._raf = requestAnimationFrame(this.frame);
+    };
 
-      this._interval = 1000 / this.fps;
-      this._last = 0;
-      this._t0 = performance.now();
-      if (this.animated) this.frame();
-      else this.draw(this._staticTime());
-    }
-
-    _staticTime() {
-      // A static field draws one fixed frame; an animated one, frozen by
-      // reduced-motion, holds its current wall-clock position.
-      if (!this.animated) return this.constructor.STATIC_T || 0;
-      return (performance.now() - this._t0) / 1000;
-    }
+    // advance the subclass's own state by dt seconds
+    step() {}
 
     resize() {
+      if (!this.gl) return;
       const dpr = Math.min(devicePixelRatio || 1, this.maxDPR);
       const w = Math.max(1, Math.round(this.clientWidth * dpr));
       const h = Math.max(1, Math.round(this.clientHeight * dpr));
@@ -155,13 +200,14 @@ float dither8(vec2 b){return ((bayer2(b*.25)*.25+bayer2(b*.5))*.25+bayer2(b))*1.
       this.canvas.width = w; this.canvas.height = h;
       this.gl.viewport(0, 0, w, h);
       this._dpr = dpr;
-      if (this._reduced || !this.animated) this.draw(this._staticTime());
+      this.draw();
     }
 
-    draw(time) {
+    draw() {
       const gl = this.gl, u = this.u;
+      if (!gl || !this._w) return;
       if (u.u_res) gl.uniform2f(u.u_res, this._w, this._h);
-      if (u.u_t) gl.uniform1f(u.u_t, time);
+      if (u.u_t) gl.uniform1f(u.u_t, this.time());
       if (u.u_p) gl.uniform2f(u.u_p, this.pointer[0], this.pointer[1]);
       if (u.u_inv) gl.uniform1f(u.u_inv, this.hasAttribute('invert') ? 1 : 0);
       if (u.u_px) gl.uniform1f(u.u_px, (parseFloat(this.getAttribute('dot')) || 2) * (this._dpr || 1));
@@ -169,107 +215,23 @@ float dither8(vec2 b){return ((bayer2(b*.25)*.25+bayer2(b*.5))*.25+bayer2(b))*1.
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
 
-    frame = () => {
-      this._raf = requestAnimationFrame(this.frame);
-      if (!this.gl) return;
-      if (this.beforeFrame) this.beforeFrame();
-      if (this._reduced || this._paused || !this._visible) return;
-      const now = performance.now();
-      if (now - this._last < this._interval) return; // frame-rate cap (perf + seizure safety)
-      this._last = now;
-      if (this.usesPointer) {
-        this.pointer[0] += (this._target[0] - this.pointer[0]) * 0.07;
-        this.pointer[1] += (this._target[1] - this.pointer[1]) * 0.07;
-      }
-      this.draw((now - this._t0) / 1000);
-    };
-
-    disconnectedCallback() {
-      cancelAnimationFrame(this._raf);
-      this._ro && this._ro.disconnect();
-      this._io && this._io.disconnect();
-      this._mq && this._onMQ && this._mq.removeEventListener('change', this._onMQ);
-      if (this._onMove) this.removeEventListener('pointermove', this._onMove);
-      if (this._onLeave) this.removeEventListener('pointerleave', this._onLeave);
-    }
+    time() { return this.staticTime; }
   }
 
-  // ── <hatch-field> — the hero flow field (unchanged behaviour) ───────────────
-  class HatchField extends Field1Bit {
-    static UNIFORMS = ['u_res', 'u_t', 'u_p', 'u_inv', 'u_px', 'u_img', 'u_has', 'u_ia'];
-    static FRAG = `
-uniform vec2 u_res;uniform float u_t;uniform vec2 u_p;uniform float u_inv;uniform float u_px;
-uniform sampler2D u_img;uniform float u_has;uniform float u_ia;
-void main(){
-  vec2 frag=gl_FragCoord.xy;
-  vec2 uv=frag/u_res;
-  vec2 p=vec2(uv.x*(u_res.x/u_res.y),uv.y);
-  float t=u_t*.05;
-  vec2 q=vec2(fbm(p*1.7+vec2(t,0.)),fbm(p*1.7+vec2(4.3,-t)));
-  float g=1.12-(uv.x*.62+uv.y*.72);
-  float v=g+(fbm(p*2.2+q*.9+vec2(0.,t*.6))-.5)*.55;
-  if(u_has>.5){
-    float ca=u_res.x/u_res.y;
-    vec2 iuv=uv;
-    if(ca>u_ia){iuv.y=(uv.y-.5)*(u_ia/ca)+.5;} else {iuv.x=(uv.x-.5)*(ca/u_ia)+.5;}
-    iuv=(iuv-.5)*1.12+.5+vec2(.035,.0);
-    vec3 c=texture2D(u_img,vec2(iuv.x,1.-iuv.y)).rgb;
-    float lum=dot(c,vec3(.299,.587,.114));
-    lum=clamp((lum-.36)*1.85+.5,0.,1.);
-    v=lum+(fbm(p*2.4+q*.7+vec2(0.,t*.5))-.5)*.09*smoothstep(.02,.3,lum);
-  }
-  vec2 m=u_p; m.x*=u_res.x/u_res.y;
-  float d=distance(p,m);
-  v-=.5*exp(-d*d*11.0)*(u_has>.5?.34:1.0);
-  v=clamp(v,0.,1.);
-  float th=dither8(frag/u_px);
-  float ink=step(th,v)*step(.012,v);
-  ink=mix(ink,1.-ink,u_inv);
-  gl_FragColor=vec4(vec3(1.-ink),1.);
-}`;
+  // Shared by the pointer-reactive fields: an energy scalar that blooms on contact and
+  // decays after leave. The loop runs only until it has decayed to zero.
+  const energyStep = (self, dt, up, down) => {
+    const k = self._active ? up : down;               // per-60Hz-frame easing constant
+    const a = 1 - Math.pow(1 - k, dt * 60);           // the same easing at any frame rate
+    self._energy += ((self._active ? 1 : 0) - self._energy) * a;
+    if (!self._active && self._energy < 0.004) self._energy = 0;
+  };
 
-    get maxDPR() { return 2; }
-    get usesPointer() { return true; }
-    get pointerHome() { return [0.5, 1.35]; }
-    get toggleAttr() { return 'data-hatch-toggle'; }
-
-    onInit() { this._has = 0; this._ia = 1; this._loadSrc(); }
-    beforeFrame() { if (this.getAttribute('src') !== this._srcTried) this._loadSrc(); }
-    extraUniforms(gl, u) {
-      gl.uniform1i(u.u_img, 0);
-      gl.uniform1f(u.u_has, this._has || 0);
-      gl.uniform1f(u.u_ia, this._ia || 1);
-    }
-
-    _loadSrc() {
-      const gl = this.gl;
-      const src = this.getAttribute('src');
-      if (!gl || !src || src === this._srcTried) return;
-      this._srcTried = src;
-      const tex = gl.createTexture();
-      const im = new Image();
-      im.onload = () => {
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, im);
-        this._ia = im.naturalWidth / im.naturalHeight;
-        this._has = 1;
-        this.draw(0);
-      };
-      im.src = src;
-    }
-  }
-
-  // ── <dither-field> — ambient domain-warped plate-mark for the contact band ──
-  // A slow marbled fbm, edge-weighted so coverage hugs the band's frame and stays
-  // sparse through the centre. Content sits on solid-ink knockouts (styles.css),
-  // so text never rides the dither — mandatory since opacity/scrim is banned.
+  // ── <dither-field> — static plate-mark for the contact band ─────────────────
+  // A marbled fbm, edge-weighted so coverage hugs the band's frame and stays sparse
+  // through the centre. Content sits on solid-ink knockouts (styles.css), so text
+  // never rides the dither — mandatory since opacity/scrim is banned.
   class DitherField extends Field1Bit {
-    static STATIC_T = 5.0; // the fixed frame this plate holds
     static UNIFORMS = ['u_res', 'u_t', 'u_inv', 'u_px'];
     static FRAG = `
 uniform vec2 u_res;uniform float u_t;uniform float u_inv;uniform float u_px;
@@ -277,12 +239,11 @@ void main(){
   vec2 frag=gl_FragCoord.xy;
   vec2 uv=frag/u_res;
   vec2 p=vec2(uv.x*(u_res.x/u_res.y),uv.y);
-  float t=u_t*.03;                                  // slow, seconds-scale drift
+  float t=u_t*.03;
   vec2 q=vec2(fbm(p*1.3+vec2(t,1.3)),fbm(p*1.3+vec2(-t,5.2)));
   float f=fbm(p*1.7+q*1.0+vec2(0.,t*.5));            // marbled scalar field
   // Plate-mark framing: dither hugs the top/bottom frame (and far L/R corners),
-  // fading to open black through the centre band where the copy sits — echoing
-  // the hero's wash. Solid knockouts (styles.css) keep copy legible regardless.
+  // fading to open black through the centre band where the copy sits.
   float edge=smoothstep(0.30,1.0,abs(uv.y-.5)*2.0);
   edge=max(edge,smoothstep(0.86,1.0,abs(uv.x-.5)*2.0));
   float v=clamp((f-0.42)*1.55*edge,0.,1.);          // subtract -> sparse speckle
@@ -292,18 +253,18 @@ void main(){
   gl_FragColor=vec4(vec3(m),1.);
 }`;
 
-    get maxDPR() { return 2; }
-    get animated() { return false; } // a static printed plate; the hero owns the page's motion
+    // A 1-bit plate needs no device pixels: render at CSS resolution and scale by
+    // nearest-neighbour, so each dot stays a crisp square at a quarter of the fill cost.
+    get maxDPR() { return 1; }
+    get staticTime() { return 5.0; } // the fixed frame this plate holds
+    onInit() { this.canvas.style.imageRendering = 'pixelated'; }
   }
 
-  // ── <metaball-field> — interactive metaball/curl-flow showpiece (hero) ──────
-  // A stateless per-fragment 2D metaball potential from 6 procedurally-orbiting
-  // centres + a pointer attractor, coordinate-warped by divergence-free curl noise
-  // so the isosurface rims flow (gooey, not clean circles). Same 1-bit path as every
-  // field: one scalar -> dither8 -> step to pure #000/#fff. NO FBO, NO extensions →
-  // renders on any WebGL1 device; degrades to the solid black panel otherwise. Auto-
-  // drifts + follows the cursor, so it reuses the hero's existing WCAG-2.2.2 Pause
-  // button (data-hatch-toggle). Drop-in swap for <hatch-field> on hero-media.
+  // ── <metaball-field> — interactive metaball/curl-flow panel (hero) ──────────
+  // A per-fragment 2D metaball potential from 6 procedurally-orbiting centres + a
+  // pointer attractor, coordinate-warped by divergence-free curl noise. The orbit
+  // clock advances ONLY while the pointer is in the panel (and while it eases out), so
+  // at rest it is a still composition and the loop is stopped.
   class MetaballField extends Field1Bit {
     static UNIFORMS = ['u_res', 'u_t', 'u_p', 'u_inv', 'u_px'];
     static FRAG = `
@@ -338,7 +299,6 @@ void main(){
   vec2 dm=wp-mp;
   F+=0.026/(dot(dm,dm)+0.0045);
   // isosurface -> scalar in [0,1]; the smoothstep band is what the dither hatches.
-  // Tight band + open black between cells reads as engineered "flow cells", not a blob mass.
   float v=smoothstep(0.95,1.42,F);
   float th=dither8(frag/u_px);
   float ink=step(th,v)*step(0.02,v);   // kill stray specks where bayer th==0 on empty ground
@@ -347,47 +307,23 @@ void main(){
 }`;
 
     get maxDPR() { return 1.75; } // 1/d² metaballs are fill-rate bound — clamp DPR below the base 2
-    get usesPointer() { return true; }
-    get pointerHome() { return [0.5, 1.8]; } // idle: attractor parked off the top edge (negligible charge)
-    get preserveBuffer() { return true; }    // static at rest → the resting frame must survive repaints
+    get pointerHome() { return [0.5, 1.8]; } // idle: attractor parked off the top edge
+    get wantsFrames() { return this._active || this._energy > 0; }
 
-    // INTERACTION-GATED (no Pause button needed): the orbit clock advances ONLY while
-    // the pointer is in the panel, so it's a still composition at rest and comes alive
-    // under the cursor, then settles. User-initiated motion → sidesteps WCAG 2.2.2.
     onInit() {
-      this._clock = 6.0;   // fixed resting composition; advances only while active
+      this._clock = 6.0; // fixed resting composition; advances only while active
       this._energy = 0;
-      this._active = false;
-      const wake = () => { this._active = true; this._paused = false; };
-      this.addEventListener('pointerenter', wake);
-      this.addEventListener('pointermove', wake);
-      this.addEventListener('pointerleave', () => { this._active = false; }); // let it ease + settle
     }
-
-    // Always render from the self-advanced clock (ignore the base's wall-clock arg).
-    draw() { super.draw(this._clock); }
-
-    beforeFrame() {
-      const tgt = this._active ? 1 : 0;
-      this._energy += (tgt - this._energy) * (this._active ? 0.10 : 0.05); // bloom fast, ease out gently
-      if ((this._active || this._energy > 0.004) && !this._reduced) {
-        this._clock += 0.010;  // ~0.6/s drift while interacting/easing; frozen otherwise
-        this._paused = false;
-      } else if (!this._paused) {
-        this._energy = 0;
-        this.draw();           // one final resting frame (persists via preserveDrawingBuffer)
-        this._paused = true;
-      }
+    step(dt) {
+      energyStep(this, dt, 0.10, 0.05); // bloom fast, ease out gently
+      this._clock += 0.6 * dt;          // ~0.6/s drift while interacting or easing out
     }
+    time() { return this._clock; }
   }
 
-  // ── <card-field> — cursor-reactive "ink clearing" for the #own mandate cards ─
-  // Each black card is pure ink at rest; a faint white ordered-dither halo blooms
-  // ONLY around the pointer and clears when it leaves. Motion is strictly user-
-  // initiated (an energy scalar ramps on pointer, decays + stops the loop on leave),
-  // so there is no auto-play → no WCAG-2.2.2 control needed; reduced-motion freezes
-  // it solid black. Text rides solid-ink knockouts (styles.css) so it never sits on
-  // the dither. u_e gates the ENTIRE effect: u_e==0 → v==0 → pure ink everywhere.
+  // ── <card-field> — cursor-reactive "ink clearing" for ink cards ─────────────
+  // Pure ink at rest; a faint white ordered-dither halo blooms ONLY around the pointer
+  // and clears when it leaves. u_e gates the ENTIRE effect: u_e==0 -> pure ink.
   class CardField extends Field1Bit {
     static UNIFORMS = ['u_res', 'u_t', 'u_p', 'u_inv', 'u_px', 'u_e'];
     static FRAG = `
@@ -399,15 +335,12 @@ void main(){
   vec2 p=vec2(uv.x*asp,uv.y);
   vec2 m=vec2(u_p.x*asp,u_p.y);
   float d=distance(p,m);
-  // soft radial reveal: 1 at the cursor, cleared to ink by radius R (squared -> tight halo)
   float R=0.44;
   float reveal=1.0-smoothstep(0.0,R,d);
   reveal*=reveal;
-  // organic broken edge; drift multiplied by u_e so the field is FROZEN when idle
   float t=u_t*0.12;
   float grain=fbm(p*3.2+m*1.7+vec2(t*u_e,-t*u_e));
   reveal*=0.45+0.75*grain;
-  // faint coverage, gated by interaction energy: idle (u_e==0) => v==0 everywhere
   float v=clamp(reveal*u_e*0.30,0.0,1.0);
   float th=dither8(frag/u_px);
   float mark=step(th,v)*step(0.02,v);   // 1 -> white speck on the ink card
@@ -415,33 +348,16 @@ void main(){
   gl_FragColor=vec4(vec3(mark),1.0);
 }`;
 
-    get maxDPR() { return 2; }
-    get usesPointer() { return true; }
     // Halo shrinks IN PLACE on leave: home = wherever the cursor currently is.
     get pointerHome() { return this.pointer ? this.pointer.slice() : [0.5, 0.5]; }
+    get wantsFrames() { return this._active || this._energy > 0; }
 
-    onInit() {
-      this._energy = 0;
-      this._active = false;
-      const wake = () => { this._active = true; this._paused = false; };
-      this.addEventListener('pointerenter', wake);
-      this.addEventListener('pointermove', wake);
-      this.addEventListener('pointerleave', () => { this._active = false; }); // let it settle
-    }
-
-    // Runs every rAF BEFORE the pause/reduced/visible gate, so it can ramp + un-pause.
-    beforeFrame() {
-      const tgt = this._active ? 1 : 0;
-      const k = this._active ? 0.14 : 0.05; // bloom fast, settle gently
-      this._energy += (tgt - this._energy) * k;
-      // Fully settled -> stop drawing. Buffer auto-clears to black (== idle state).
-      if (!this._active && this._energy < 0.003) { this._energy = 0; this._paused = true; }
-    }
-
+    onInit() { this._energy = 0; this._clock = 0; }
+    step(dt) { energyStep(this, dt, 0.14, 0.05); this._clock += dt; }
+    time() { return this._clock; }
     extraUniforms(gl, u) { gl.uniform1f(u.u_e, this._energy || 0); }
   }
 
-  customElements.define('hatch-field', HatchField);
   customElements.define('dither-field', DitherField);
   customElements.define('metaball-field', MetaballField);
   customElements.define('card-field', CardField);

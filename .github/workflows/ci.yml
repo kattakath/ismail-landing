@@ -24,16 +24,18 @@ permissions:
 jobs:
   gate:
     if: ${{ !cancelled() }}
-    needs: [gitleaks]
+    needs: [gitleaks, links, svg, design-system]
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
       # `expect` holds a deliberate SECOND copy of gitleaks's `if:`. If the two drift, gate goes red.
+      # links / svg / design-system have no `if:`, so they must always succeed.
       - uses: kattakath/.github/actions/gate@3d5ad5b9e04c853dbb0d82446255c9ef9230332a
         with:
           needs: ${{ toJSON(needs) }}
           expect: >-
-            {"gitleaks": ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || vars.QUEUE_ENABLED != 'true' }}}
+            {"gitleaks": ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || vars.QUEUE_ENABLED != 'true' }},
+             "links": true, "svg": true, "design-system": true}
 
   # Secrets over the WHOLE history (a value one commit adds and a later one removes still leaks).
   gitleaks:
@@ -47,3 +49,50 @@ jobs:
       - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31
       - name: gitleaks over all history
         run: nix run nixpkgs#gitleaks -- git --redact --no-banner --exit-code 1 .
+
+  # Every local link, asset and #fragment in every page resolves. Offline: no network, so
+  # a flaky third-party site can never turn this red. --root-dir resolves root-absolute
+  # paths (/styles.css) against the checkout; --index-files makes /#work find index.html.
+  links:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31
+      - name: lychee, offline, fragments included
+        run: nix run nixpkgs#lychee -- --offline --no-progress --root-dir "$PWD" --index-files index.html --include-fragments '**/*.html'
+
+  # Every SVG is well-formed XML and not a truncated stub (favicon.svg once shipped as 6 bytes).
+  svg:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31
+      - name: xmllint + 100-byte floor
+        run: |
+          mapfile -t svgs < <(git ls-files '*.svg')
+          [ "${#svgs[@]}" -gt 0 ] || { echo "::error::no SVG files found"; exit 1; }
+          nix shell nixpkgs#libxml2 --command xmllint --noout "${svgs[@]}"
+          for f in "${svgs[@]}"; do
+            [ "$(wc -c < "$f")" -ge 100 ] || { echo "::error file=$f::under 100 bytes"; exit 1; }
+          done
+          echo "${#svgs[@]} SVG files OK"
+
+  # The vendored design system is a byte-exact pin. The source repo is private, so CI
+  # cannot fetch it: vendor/duochrome.sha256 records the tag's checksum instead.
+  design-system:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: version header + sha256 pin
+        run: |
+          f=$(awk '{print $2}' vendor/duochrome.sha256)
+          v=${f#vendor/duochrome-}; v=${v%.css}
+          head -n 1 "$f" | grep -qF "Duochrome design system, v$v" \
+            || { echo "::error file=$f::header does not name v$v"; exit 1; }
+          sha256sum -c vendor/duochrome.sha256
+          grep -rlF --include='*.html' "/vendor/duochrome-$v.css" . | sort > linked
+          git ls-files '*.html' | sed 's|^|./|' | sort > pages
+          diff pages linked || { echo "::error::a page does not load /vendor/duochrome-$v.css"; exit 1; }
