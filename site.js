@@ -102,29 +102,74 @@
       }
     }
 
-    /* ---- Reveals: only hide what is BELOW the fold, so nothing flashes ---- */
+    /* ---- Career timeline: positions and the current role's length, against today ----
+       Rows carry data-start / data-end (YYYY-MM); the axis runs from Jan 2010 to now.
+       The inline --from/--w/--dur values are the no-JS fallback, computed the same way. */
+    var tl = doc.querySelector(".timeline");
+    if (tl) {
+      var AXIS0 = 2010;
+      var monthsOf = function (ym) {
+        var p = ym.split("-");
+        return (+p[0] - AXIS0) * 12 + (+p[1] - 1);
+      };
+      var d = new Date();
+      var dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      var now = (d.getFullYear() - AXIS0) * 12 + d.getMonth() + (d.getDate() - 1) / dim;
+      var pct = function (n) { return (Math.round(n * 1000) / 10).toString(); };
+      var rows = tl.querySelectorAll(".tl-row[data-start]");
+      var spans = [], longest = 0;
+      Array.prototype.forEach.call(rows, function (row) {
+        var a = monthsOf(row.getAttribute("data-start"));
+        var end = row.getAttribute("data-end");
+        var b = end ? monthsOf(end) : now;
+        spans.push([row, a, b]);
+        longest = Math.max(longest, b - a);
+      });
+      spans.forEach(function (x) {
+        var row = x[0], a = x[1], b = x[2];
+        row.style.setProperty("--from", pct(a / now));
+        row.style.setProperty("--w", pct((b - a) / now));
+        row.style.setProperty("--dur", Math.round(((b - a) / longest) * 100));
+        var dur = row.querySelector(".tl-dur");
+        if (dur) {
+          var m = Math.floor(b - a), y = Math.floor(m / 12);
+          dur.textContent = y ? y + "y " + (m % 12) + "m" : m + " mo";
+        }
+      });
+      Array.prototype.forEach.call(tl.querySelectorAll(".tl-axis [data-year]"), function (s) {
+        s.style.setProperty("--p", pct(((+s.getAttribute("data-year") - AXIS0) * 12) / now));
+      });
+    }
+
+    /* ---- Fact lists: every fact on wide screens, the top three + a toggle below ----
+       The markup ships <details open>, so without JS nothing is ever hidden. */
+    var mores = doc.querySelectorAll("details.more");
+    if (mores.length && window.matchMedia) {
+      var wide = window.matchMedia("(min-width: 1024px)");
+      var syncMore = function () {
+        Array.prototype.forEach.call(mores, function (d) { d.open = wide.matches; });
+      };
+      syncMore();
+      (wide.addEventListener ? wide.addEventListener.bind(wide, "change") : wide.addListener.bind(wide))(syncMore);
+    }
+
+    /* ---- Reveal: a below-the-fold section's 4px rule grows in on entry. Only the
+       rule moves (styles.css); content is never hidden, so nothing waits on this. ---- */
     if (!reduce && "IntersectionObserver" in window) {
       var sections = doc.querySelectorAll("main > section");
-      var revealables = [];
-      Array.prototype.forEach.call(sections, function (s, i) {
-        var r = s.getBoundingClientRect();
-        if (i === 0 || r.top < window.innerHeight * 0.9) return; /* leave above-fold visible */
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            en.target.classList.add("in-view");
+            io.unobserve(en.target);
+          }
+        });
+      }, { rootMargin: "0px 0px -15% 0px", threshold: 0 });
+      Array.prototype.forEach.call(sections, function (s) {
+        if (s.getBoundingClientRect().top < window.innerHeight * 0.9) return; /* above the fold: already drawn */
         s.classList.add("reveal");
-        revealables.push(s);
+        io.observe(s);
       });
-      var tl = doc.querySelector(".timeline");
-      if (tl) revealables.push(tl);
-      if (revealables.length) {
-        var io = new IntersectionObserver(function (entries) {
-          entries.forEach(function (en) {
-            if (en.isIntersecting) {
-              en.target.classList.add("in-view");
-              io.unobserve(en.target);
-            }
-          });
-        }, { rootMargin: "0px 0px -12% 0px", threshold: 0.12 });
-        revealables.forEach(function (el) { io.observe(el); });
-      }
     }
   });
 

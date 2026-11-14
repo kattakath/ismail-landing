@@ -1,0 +1,12 @@
+# Ismail Kattakath
+
+> Ismail Kattakath is a principal software engineer in Toronto, Canada. He builds the platform AI products run on: multi-tenant AI SaaS on AWS, tenant isolation, AI usage billing, inference cost and Document AI, in production since 2010. ismail.kattakath.com is his professional page: what he owns, selected work, career and contact.
+
+- Currently principal software engineer at Infin8 Information Technologies (Takeoff, an AEC estimation SaaS on AWS).
+- Open to principal and staff roles, and to consulting: advisory, fractional principal, build-and-hand-over. Remote from Toronto.
+- Contact: ismail@kattakath.com · https://linkedin.com/in/ismailkattakath · https://github.com/ismailkattakath
+
+## Pages
+
+- [Ismail Kattakath](https://ismail.kattakath.com/): mandates, selected work, how he works, career timeline, stack and contact
+- [De-tracing case study](https://ismail.kattakath.com/case-studies/detracing/): an analysis-by-synthesis loop with an AI vision critic rebuilt an auto-traced logo from 92 segments into 14 primitives, residual 1.5%
