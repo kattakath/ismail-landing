@@ -1,8 +1,7 @@
 /* Ismail Kattakath — landing page styles.
-   Layer 1: self-hosted fonts (+ metric-matched fallbacks). Layer 2: the Duochrome
-   design system (verbatim — ink #000 / ground #fff, two type roles, no
-   greys/gradients/shadows/radii). Layer 3: page components. Layer 4: responsive
-   system + accessible mobile nav + a restrained motion layer. */
+   Loaded AFTER /vendor/duochrome-1.1.0.css (the Duochrome design system, vendored
+   verbatim; see README). This file holds only what is specific to this site:
+   Layer 1 self-hosted fonts, Layer 3 page components, Layer 4 responsive + motion. */
 
 /* ---------- Layer 1: fonts (self-hosted woff2, variable weight) ---------- */
 @font-face {
@@ -19,28 +18,9 @@
   font-display: swap;
   src: url("./fonts/roboto-mono.woff2") format("woff2");
 }
-/* Metric-matched fallback so the swap from Arial -> Roboto reflows ~0px (CLS). */
-@font-face {
-  font-family: "Roboto Fallback";
-  src: local("Arial");
-  ascent-override: 92.7%;
-  descent-override: 24.4%;
-  line-gap-override: 0%;
-  size-adjust: 100.3%;
-}
 
-/* ---------- Layer 2: Duochrome tokens ---------- */
+/* ---------- page tokens ---------- */
 :root {
-  --ink: #000;
-  --ground: #fff;
-  --font-sans: Roboto, "Roboto Fallback", Helvetica, Arial, sans-serif;
-  --font-mono: "Roboto Mono", ui-monospace, monospace;
-  --rule-hair: 1px;
-  --rule-base: 2px;
-  --rule-loud: 4px;
-  --rule-bar: 12px;
-  --track-label: 0.24em;
-
   /* page rhythm — defined once, reused everywhere (DRY) */
   --pad-x: clamp(18px, 4vw, 48px);
   --sec-y: clamp(48px, 6vw, 84px);
@@ -53,12 +33,7 @@
   --header-size: clamp(83px, 60px + 6vw, 136px);
 }
 
-/* ---------- Layer 2: base ---------- */
-* {
-  box-sizing: border-box;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
+/* ---------- page base ---------- */
 html {
   scroll-behavior: smooth;
   scroll-padding-top: var(--header-h);
@@ -68,53 +43,9 @@ html {
   scroll-margin-top: var(--header-h);
 }
 body {
-  margin: 0;
-  background: var(--ground);
-  color: var(--ink);
-  font-family: var(--font-sans);
-  font-weight: 400;
-  -webkit-font-smoothing: antialiased;
-  text-wrap: pretty;
   overflow-x: hidden;
 }
-img,
-svg {
-  display: block;
-  max-width: 100%;
-}
 
-/* Links invert BOTH background and text on hover (and focus) — not just the
-   background. This is the DS default; the page must not override it back. */
-a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: background 70ms linear, color 70ms linear;
-}
-a:hover,
-a:focus-visible {
-  background: var(--ink);
-  color: var(--ground);
-  text-decoration: none;
-}
-:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 3px;
-}
-
-/* Inversion: on ink surfaces the hover/focus swap flips the other way. */
-.dc-invert {
-  background: var(--ink);
-  color: var(--ground);
-}
-.dc-invert a:hover,
-.dc-invert a:focus-visible {
-  background: var(--ground);
-  color: var(--ink);
-}
-.dc-invert :focus-visible {
-  outline-color: var(--ground);
-}
 /* Inverted surfaces: flip component borders (and the timeline fill) to ground so
    cards, tables and the career bars read correctly on an ink section. Regular
    chips already use currentColor, so they invert for free. */
@@ -148,106 +79,6 @@ a:focus-visible {
 /* an inverted full-section reads as a band, so it needs symmetric padding */
 .section.dc-invert {
   padding-bottom: var(--sec-y);
-}
-
-/* ---------- Layer 2: type primitives ---------- */
-.dc-label {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-}
-.dc-meta {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: 0.14em;
-  font-variant-numeric: tabular-nums;
-}
-.dc-num {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---------- Layer 2: buttons ---------- */
-.dc-btn {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  text-decoration: none;
-  padding: 14px 22px;
-  border: var(--rule-base) solid currentColor;
-  background: var(--ground);
-  color: var(--ink);
-  cursor: pointer;
-  transition: background 70ms linear, color 70ms linear;
-}
-.dc-btn:hover,
-.dc-btn:focus-visible {
-  background: var(--ink);
-  color: var(--ground);
-  text-decoration: none;
-}
-.dc-btn--lg {
-  font-size: 14px;
-  padding: 18px 28px;
-}
-.dc-btn--text {
-  border-color: transparent;
-  border-bottom-color: currentColor;
-  padding: 12px 4px;
-}
-.dc-btn--text:hover,
-.dc-btn--text:focus-visible {
-  background: none;
-  color: inherit;
-  border-bottom-width: var(--rule-loud);
-}
-/* On an ink surface, default buttons are ink-filled and invert on hover. */
-.dc-invert .dc-btn {
-  background: var(--ink);
-  color: var(--ground);
-  border-color: var(--ground);
-}
-.dc-invert .dc-btn:hover,
-.dc-invert .dc-btn:focus-visible {
-  background: var(--ground);
-  color: var(--ink);
-}
-/* The hero's filled button: ground-filled by default, inverts to ink on hover. */
-.dc-invert .dc-btn--fill {
-  background: var(--ground);
-  color: var(--ink);
-  border-color: var(--ground);
-}
-.dc-invert .dc-btn--fill:hover,
-.dc-invert .dc-btn--fill:focus-visible {
-  background: var(--ink);
-  color: var(--ground);
-}
-
-/* ---------- Layer 2: chips ---------- */
-.dc-chip {
-  display: inline-block;
-  border: var(--rule-hair) solid currentColor;
-  padding: 6px 10px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.dc-chip--on {
-  background: var(--ink);
-  color: var(--ground);
-  border-color: var(--ink);
-}
-.dc-invert .dc-chip--on {
-  background: var(--ground);
-  color: var(--ink);
 }
 
 /* ---------- Layer 3: skip link (WCAG 2.4.1) ---------- */
@@ -848,77 +679,18 @@ a:focus-visible {
   align-items: center;
 }
 
-/* ---------- reusable data table (spoke pages: /evidence/, case studies) ---------- */
-.dc-table-wrap {
-  overflow-x: auto;
-  border: var(--rule-base) solid var(--ink);
-  margin-top: clamp(26px, 3.4vw, 40px);
-}
-.dc-table {
-  border-collapse: collapse;
-  width: 100%;
-  min-width: 560px;
-}
-.dc-table caption {
-  text-align: left;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 16px;
-  border-bottom: var(--rule-base) solid var(--ink);
-}
-.dc-table th,
-.dc-table td {
-  text-align: left;
-  padding: 16px;
-  border-bottom: var(--rule-hair) solid var(--ink);
-  vertical-align: top;
-  line-height: 1.5;
-  font-size: clamp(15px, 1.4vw, 17px);
-}
-.dc-table thead th {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  border-bottom: var(--rule-base) solid var(--ink);
-}
-.dc-table tbody tr:last-child td {
-  border-bottom: 0;
-}
+
+/* ---------- case-study table values ---------- */
 .dc-table .val {
   font-family: var(--font-mono);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-/* a DNA-legal "scrollable" cue on narrow screens (mono label, no shadow) */
 .dc-table-wrap {
-  position: relative;
+  margin-top: clamp(26px, 3.4vw, 40px);
 }
-.dc-table-wrap::before {
-  content: "";
-}
-@media (max-width: 620px) {
-  .dc-table-wrap {
-    padding-top: 30px;
-  }
-  .dc-table-wrap::before {
-    content: "\2194  scroll";
-    position: absolute;
-    top: 0;
-    right: 0;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    padding: 7px 12px;
-    border-left: var(--rule-hair) solid var(--ink);
-    border-bottom: var(--rule-hair) solid var(--ink);
-  }
-}
+
 
 /* ---------- evidence-teaser row on the hub ---------- */
 .evidence-teaser {
@@ -1061,20 +833,5 @@ a:focus-visible {
   }
   .js .timeline.in-view .tl-fill {
     transform: scaleX(1);
-  }
-}
-
-/* ---------- reduced motion (WCAG 2.3.3 / the design's standing rule) ---------- */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-  /* neutralise every transition/animation, not just smooth scroll */
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
   }
 }
