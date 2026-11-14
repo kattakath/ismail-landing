@@ -3,9 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 
-<title>Ismail Kattakath — Principal Software Engineer, Applied AI &amp; Cloud Platforms</title>
-<meta name="description" content="Principal software engineer for production multi-tenant AI SaaS on AWS — inference economics, AI usage billing, Document AI, cloud infrastructure. 15+ years shipping systems end to end.">
+<title>Ismail Kattakath — Principal Software Engineer, AI &amp; Cloud</title>
+<meta name="description" content="Principal software engineer for production multi-tenant AI SaaS on AWS: inference economics, AI usage billing, Document AI and cloud. Shipping since 2010.">
 <link rel="canonical" href="https://ismail.kattakath.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="Ismail Kattakath">
@@ -46,37 +48,44 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Person",
-  "name": "Ismail Kattakath",
-  "url": "https://ismail.kattakath.com",
-  "image": "https://ismail.kattakath.com/og.png",
-  "jobTitle": "Principal Software Engineer",
-  "description": "Principal engineer for production multi-tenant AI SaaS and applied-AI platforms on AWS — inference economics, AI usage billing, Document AI, and cloud infrastructure.",
-  "email": "mailto:ismail@kattakath.com",
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Toronto",
-    "addressRegion": "ON",
-    "addressCountry": "CA"
-  },
-  "worksFor": {
-    "@type": "Organization",
-    "name": "Infin8 Information Technologies",
-    "url": "https://www.infin8it.ca/"
-  },
-  "alumniOf": {
-    "@type": "CollegeOrUniversity",
-    "name": "Mahatma Gandhi University"
-  },
-  "sameAs": [
-    "https://linkedin.com/in/ismailkattakath",
-    "https://github.com/ismailkattakath"
-  ],
-  "knowsAbout": [
-    "Multi-tenant AI SaaS", "Inference economics", "AI usage billing",
-    "Document AI", "AWS", "Python", "FastAPI", "LiteLLM", "RAG",
-    "Kubernetes", "Terraform", "Stripe billing", "AWS Cognito"
-  ]
+  "@type": "ProfilePage",
+  "url": "https://ismail.kattakath.com/",
+  "dateModified": "2026-11-14",
+  "mainEntity": {
+    "@type": "Person",
+    "@id": "https://ismail.kattakath.com/#person",
+    "name": "Ismail Kattakath",
+    "url": "https://ismail.kattakath.com/",
+    "image": "https://ismail.kattakath.com/og.png",
+    "jobTitle": "Principal Software Engineer",
+    "description": "Principal engineer for production multi-tenant AI SaaS and applied-AI platforms on AWS — inference economics, AI usage billing, Document AI, and cloud infrastructure.",
+    "email": "mailto:ismail@kattakath.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Toronto",
+      "addressRegion": "ON",
+      "addressCountry": "CA"
+    },
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Infin8 Information Technologies",
+      "url": "https://www.infin8it.ca/"
+    },
+    "alumniOf": {
+      "@type": "CollegeOrUniversity",
+      "name": "Mahatma Gandhi University"
+    },
+    "sameAs": [
+      "https://linkedin.com/in/ismailkattakath",
+      "https://github.com/ismailkattakath",
+      "https://kattakath.com/"
+    ],
+    "knowsAbout": [
+      "Multi-tenant AI SaaS", "Inference economics", "AI usage billing",
+      "Document AI", "AWS", "Python", "FastAPI", "LiteLLM", "RAG",
+      "Kubernetes", "Terraform", "Stripe billing", "AWS Cognito"
+    ]
+  }
 }
 </script>
 </head>
@@ -172,7 +181,7 @@
   <section id="work" class="section" aria-labelledby="work-h">
     <div class="section-head">
       <h2 id="work-h">Selected work</h2>
-      <span class="dc-label">02 — Three systems in production</span>
+      <span class="dc-label">02 — Three systems, one method</span>
     </div>
 
     <div class="grid-body">
@@ -224,6 +233,14 @@
           <p class="metric"><span>Partner organizations federated over SAML 2.0</span><span class="dc-num">5+</span></p>
           <p class="metric"><span>Deploy time, down from four hours</span><span class="dc-num">20 min</span></p>
           <p class="metric"><span>DigitalOcean → AWS migration on Terraform</span><span class="dc-num dc-num--sm">Zero downtime</span></p>
+        </div>
+      </article>
+      <article class="work-item">
+        <div class="work-head">
+          <p class="dc-meta" style="margin-bottom:18px">Method · case study</p>
+          <h3>De-tracing: 92 segments → 14 primitives, 1.5% residual</h3>
+          <a class="dc-btn dc-btn--text" href="/case-studies/detracing/">Read the case study</a>
+          <p>An analysis-by-synthesis loop, with an AI vision critic, recovered the design system buried inside an auto-traced logo.</p>
         </div>
       </article>
     </div>

@@ -10,10 +10,11 @@ No build step: the files here are the site.
 | --- | --- |
 | `index.html` | the landing page |
 | `case-studies/detracing/` | the de-tracing case study |
+| `404.html` | served by Pages for any missing path |
 | `vendor/duochrome-1.1.0.css` | the Duochrome design system, vendored verbatim |
 | `styles.css` | fonts and page components only, loaded after the design system |
 | `site.js`, `dither-1bit.js` | progressive enhancement; the page reads fine without them |
-| `sitemap.xml`, `robots.txt` | crawler files |
+| `sitemap.xml`, `robots.txt`, `llms.txt` | crawler files; `sitemap.xml` `lastmod` is hand-maintained |
 
 ## The design-system pin
 
