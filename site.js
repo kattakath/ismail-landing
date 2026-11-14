@@ -102,6 +102,45 @@
       }
     }
 
+    /* ---- Career timeline: positions and the current role's length, against today ----
+       Rows carry data-start / data-end (YYYY-MM); the axis runs from Jan 2010 to now.
+       The inline --from/--w/--dur values are the no-JS fallback, computed the same way. */
+    var tl = doc.querySelector(".timeline");
+    if (tl) {
+      var AXIS0 = 2010;
+      var monthsOf = function (ym) {
+        var p = ym.split("-");
+        return (+p[0] - AXIS0) * 12 + (+p[1] - 1);
+      };
+      var d = new Date();
+      var dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      var now = (d.getFullYear() - AXIS0) * 12 + d.getMonth() + (d.getDate() - 1) / dim;
+      var pct = function (n) { return (Math.round(n * 1000) / 10).toString(); };
+      var rows = tl.querySelectorAll(".tl-row[data-start]");
+      var spans = [], longest = 0;
+      Array.prototype.forEach.call(rows, function (row) {
+        var a = monthsOf(row.getAttribute("data-start"));
+        var end = row.getAttribute("data-end");
+        var b = end ? monthsOf(end) : now;
+        spans.push([row, a, b]);
+        longest = Math.max(longest, b - a);
+      });
+      spans.forEach(function (x) {
+        var row = x[0], a = x[1], b = x[2];
+        row.style.setProperty("--from", pct(a / now));
+        row.style.setProperty("--w", pct((b - a) / now));
+        row.style.setProperty("--dur", Math.round(((b - a) / longest) * 100));
+        var dur = row.querySelector(".tl-dur");
+        if (dur) {
+          var m = Math.floor(b - a), y = Math.floor(m / 12);
+          dur.textContent = y ? y + "y " + (m % 12) + "m" : m + " mo";
+        }
+      });
+      Array.prototype.forEach.call(tl.querySelectorAll(".tl-axis [data-year]"), function (s) {
+        s.style.setProperty("--p", pct(((+s.getAttribute("data-year") - AXIS0) * 12) / now));
+      });
+    }
+
     /* ---- Reveals: only hide what is BELOW the fold, so nothing flashes ---- */
     if (!reduce && "IntersectionObserver" in window) {
       var sections = doc.querySelectorAll("main > section");
