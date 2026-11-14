@@ -4,7 +4,6 @@
 // Custom elements sharing ONE guarded WebGL harness (Field1Bit):
 //   <metaball-field> — the hero's metaball/curl-flow panel; moves only under the pointer.
 //   <dither-field>   — a static domain-warped "plate-mark" for the contact band.
-//   <card-field>     — a pointer halo for ink cards.
 //
 // The dither math (hash/value-noise/fbm/Bayer) lives once in LIB and is prepended to
 // every fragment shader. The Bayer recursion is after basement.studio's shader-lab
@@ -321,44 +320,6 @@ void main(){
     time() { return this._clock; }
   }
 
-  // ── <card-field> — cursor-reactive "ink clearing" for ink cards ─────────────
-  // Pure ink at rest; a faint white ordered-dither halo blooms ONLY around the pointer
-  // and clears when it leaves. u_e gates the ENTIRE effect: u_e==0 -> pure ink.
-  class CardField extends Field1Bit {
-    static UNIFORMS = ['u_res', 'u_t', 'u_p', 'u_inv', 'u_px', 'u_e'];
-    static FRAG = `
-uniform vec2 u_res;uniform float u_t;uniform vec2 u_p;uniform float u_inv;uniform float u_px;uniform float u_e;
-void main(){
-  vec2 frag=gl_FragCoord.xy;
-  vec2 uv=frag/u_res;
-  float asp=u_res.x/u_res.y;
-  vec2 p=vec2(uv.x*asp,uv.y);
-  vec2 m=vec2(u_p.x*asp,u_p.y);
-  float d=distance(p,m);
-  float R=0.44;
-  float reveal=1.0-smoothstep(0.0,R,d);
-  reveal*=reveal;
-  float t=u_t*0.12;
-  float grain=fbm(p*3.2+m*1.7+vec2(t*u_e,-t*u_e));
-  reveal*=0.45+0.75*grain;
-  float v=clamp(reveal*u_e*0.30,0.0,1.0);
-  float th=dither8(frag/u_px);
-  float mark=step(th,v)*step(0.02,v);   // 1 -> white speck on the ink card
-  mark=mix(mark,1.0-mark,u_inv);
-  gl_FragColor=vec4(vec3(mark),1.0);
-}`;
-
-    // Halo shrinks IN PLACE on leave: home = wherever the cursor currently is.
-    get pointerHome() { return this.pointer ? this.pointer.slice() : [0.5, 0.5]; }
-    get wantsFrames() { return this._active || this._energy > 0; }
-
-    onInit() { this._energy = 0; this._clock = 0; }
-    step(dt) { energyStep(this, dt, 0.14, 0.05); this._clock += dt; }
-    time() { return this._clock; }
-    extraUniforms(gl, u) { gl.uniform1f(u.u_e, this._energy || 0); }
-  }
-
   customElements.define('dither-field', DitherField);
   customElements.define('metaball-field', MetaballField);
-  customElements.define('card-field', CardField);
 })();

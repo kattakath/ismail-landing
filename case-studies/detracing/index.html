@@ -61,7 +61,7 @@
   .cs-hero-lead { max-width: 62ch; }
   .cs-figure {
     border: var(--rule-base) solid var(--ink);
-    margin-top: clamp(20px, 3vw, 28px);
+    margin-top: clamp(var(--s5), 3vw, var(--s8));
     background: var(--ground);
   }
   .cs-figure svg { display: block; width: 100%; height: auto; }
@@ -69,49 +69,51 @@
     font-family: var(--font-mono);
     font-size: 13px;
     color: var(--ink);
-    margin-top: 10px;
+    margin-top: var(--s3);
     max-width: 68ch;
   }
   .cs-legend {
     display: flex;
-    gap: clamp(14px, 2.4vw, 24px);
+    gap: clamp(var(--s3), 2.4vw, var(--s6));
     flex-wrap: wrap;
     font-family: var(--font-mono);
     font-size: 13px;
     letter-spacing: 0.02em;
-    margin: 18px 0 4px;
+    margin: var(--s4) 0 var(--s1);
   }
-  .cs-legend i { display: inline-block; width: 11px; height: 11px; margin-right: 7px; vertical-align: -1px; border: var(--rule-hair) solid var(--ink); }
+  .cs-legend i { display: inline-block; width: var(--s3); height: var(--s3); margin-right: var(--s2); vertical-align: -1px; border: var(--rule-hair) solid var(--ink); }
   .cs-loop {
     font-family: var(--font-mono);
     font-size: 13px;
     line-height: 1.5;
     border: var(--rule-base) solid var(--ink);
-    padding: 20px;
+    padding: var(--s5);
     overflow-x: auto;
     white-space: pre;
-    margin-top: clamp(20px, 3vw, 28px);
+    margin-top: clamp(var(--s5), 3vw, var(--s8));
   }
   .cs-loop b { font-weight: 700; }
   .cs-eq {
     font-family: var(--font-mono);
     font-size: 14.5px;
     border: var(--rule-base) solid var(--ink);
-    padding: 14px 18px;
-    margin-top: 18px;
+    padding: var(--s3) var(--s4);
+    margin-top: var(--s4);
     overflow-x: auto;
     white-space: pre;
   }
   .cs-fals {
     border-left: var(--rule-bar) solid var(--ink);
-    padding: 4px 0 4px 20px;
-    margin-top: 20px;
+    padding: var(--s1) 0 var(--s1) var(--s5);
+    margin-top: var(--s5);
     max-width: 72ch;
   }
-  .cs-fals + .cs-fals { margin-top: 24px; }
-  .cs-fals p { margin: 8px 0 0; }
+  .cs-fals + .cs-fals { margin-top: var(--s6); }
+  .cs-fals p { margin: var(--s2) 0 0; }
   .cs-prose { max-width: 72ch; }
-  .cs-prose + .cs-prose { margin-top: 14px; }
+  .cs-prose + .cs-prose, .cs-loop + .cs-prose { margin-top: var(--s4); }
+  .cs-note { margin-top: var(--s4); font-size: 15px; }
+  .cs-code { font-family: var(--font-mono); font-size: 0.92em; }
 </style>
 </head>
 <body>
@@ -138,7 +140,7 @@
   <section id="top" class="hero dc-invert" aria-label="Case study introduction">
     <div class="hero-grid">
       <div class="hero-col">
-        <p class="dc-label">Case study — methodology</p>
+        <p class="dc-label hero-eyebrow">Case study — methodology</p>
         <h1 class="hero-title">De-tracing: recovering the design system inside an auto-traced logo</h1>
         <p class="hero-lead cs-hero-lead">A client logo arrived as auto-traced vector soup: 92 wobbly segments, no symmetry, stroke widths wandering 30–37 units. Instead of redrawing it, I ran an analysis-by-synthesis loop — measure, fit closed-form, render, diff, repeat — with an AI vision model as the critic. Out came 14 primitives, 15 constants, four motion equations, and a drift certificate proving the residual is 1.5% and every unit of it intentional.</p>
         <div class="hero-cta">
@@ -149,7 +151,7 @@
     </div>
   </section>
 
-  <section class="section" aria-label="At a glance" style="padding-top:clamp(36px,5vw,64px)">
+  <section class="section section--glance" aria-label="At a glance">
     <div class="stat-band">
       <div class="stat"><p class="dc-num stat-num">92→14</p><p class="dc-label stat-label">Segments → primitives</p></div>
       <div class="stat"><p class="dc-num stat-num">0.0000u</p><p class="dc-label stat-label">Mirror-symmetry deviation</p></div>
@@ -160,8 +162,9 @@
 
   <section class="section" aria-labelledby="cs-proof-h">
     <div class="section-head">
+      <span class="sec-num">01</span>
       <h2 id="cs-proof-h">The proof, first</h2>
-      <span class="dc-label">01 — The artifact</span>
+      <span class="dc-label">The artifact</span>
     </div>
     <div class="grid-body">
       <p class="cs-prose">This is the final deliverable of the verification pipeline: a symmetric-difference map of the original logo against the parametric rebuild, computed in-browser by SVG cross-masking. Blue is agreement. Green is what the rebuild added (a uniform 36-unit stroke reaching past the source's thin passages). Red is what it removed (hand-drawn excess at corners and letter feet). The colors are orthogonal RGB channels because the sets are disjoint — if any two classes overlapped, additive mixing would betray it as yellow. No yellow exists in this image; its absence is the correctness proof.</p>
@@ -280,8 +283,9 @@ compatibility), so agreement cancels and only drift renders, color-coded per dif
 
   <section class="section" aria-labelledby="cs-loop-h">
     <div class="section-head">
+      <span class="sec-num">02</span>
       <h2 id="cs-loop-h">Analysis by synthesis, run by hand and critic</h2>
-      <span class="dc-label">02 — The loop</span>
+      <span class="dc-label">The loop</span>
     </div>
     <div class="grid-body">
       <p class="cs-prose">The method hypothesizes a parametric model, renders it, compares against the source raster, and lets the residual drive the next update. Three properties distinguish it from gradient-based vectorization (DiffVG-class methods): fits are closed-form, so the output is interpretable constants rather than Bézier soup; model <em>selection</em> happens inside the loop — a hypothesis can be rejected and replaced, not merely tuned; and the critic is perceptual, catching failures that pixel metrics structurally cannot.</p>
@@ -306,15 +310,16 @@ compatibility), so agreement cancels and only drift renders, color-coded per dif
         │ <b>SYNTHESIZE</b>   │─────►│ <b>RASTERIZE</b>     │
         │ V = G(θ)     │      │ R = Rast(V)   │
         └──────────────┘      └───────────────┘</div>
-      <p class="cs-prose" style="margin-top:14px">Coordinate descent over components — walls, then lips, then bottom topology, then letters — each verified locally before the next. The loss:</p>
+      <p class="cs-prose">Coordinate descent over components — walls, then lips, then bottom topology, then letters — each verified locally before the next. The loss:</p>
       <div class="cs-eq">L(θ) = |Rast(G(θ)) ⊕ R*| / |Rast(G(θ)) ∪ R*| ∖ E     E = declared-intentional deviations</div>
     </div>
   </section>
 
   <section class="section" aria-labelledby="cs-const-h">
     <div class="section-head">
+      <span class="sec-num">03</span>
       <h2 id="cs-const-h">Fifteen constants were hiding in the wobble</h2>
-      <span class="dc-label">03 — What measurement found</span>
+      <span class="dc-label">What measurement found</span>
     </div>
     <div class="grid-body">
       <p class="cs-prose">Cross-sections of the traced walls fit straight lines with slopes 0.5506 and 0.5510 — the designer meant 0.55. The midline sat at 255.3 on a 512 canvas — they meant 256. Perpendicular stroke thickness clustered at 32; letter arm lines landed on 370 / 427.5 / 485 with the S's lobes at radius 28.75 and the C's lobe at exactly twice that. The original had a design system; the tracing had buried it. The rebuild's entire geometry is those recovered constants plus tangency math — corner fillets solved exactly, symmetry by mirrored coordinates rather than by drawing.</p>
@@ -324,8 +329,9 @@ compatibility), so agreement cancels and only drift renders, color-coded per dif
 
   <section class="section" aria-labelledby="cs-fals-h">
     <div class="section-head">
+      <span class="sec-num">04</span>
       <h2 id="cs-fals-h">Three hypotheses died. That is the point.</h2>
-      <span class="dc-label">04 — Falsifications</span>
+      <span class="dc-label">Falsifications</span>
     </div>
     <div class="grid-body">
       <p class="cs-prose">Gradient methods tune a hypothesis; they cannot reject one. This loop did, three times — each caught by measurement or by looking, each replacing a model class, not a parameter:</p>
@@ -346,8 +352,9 @@ compatibility), so agreement cancels and only drift renders, color-coded per dif
 
   <section class="section" aria-labelledby="cs-miss-h">
     <div class="section-head">
+      <span class="sec-num">05</span>
       <h2 id="cs-miss-h">The failure catalog is the finding</h2>
-      <span class="dc-label">05 — What the numbers missed</span>
+      <span class="dc-label">What the numbers missed</span>
     </div>
     <div class="grid-body">
       <p class="cs-prose">Three defects passed every numerical assertion and fell only to a vision check in the real rendering context: a WebKit thumbnail bug that dropped an element cairosvg rendered fine; blind probe points that sampled gaps in the geometry and reported success; and a CSS-class refactor that was leaner and degraded catastrophically in CSS-less rasterizers. The generalizable result: <em>loops with derivable ground truth close themselves; perceptual-quality loops need a vision oracle</em> — and knowing where that boundary sits is worth more than pretending it isn't there.</p>
@@ -357,11 +364,12 @@ compatibility), so agreement cancels and only drift renders, color-coded per dif
 
   <section class="section" aria-labelledby="cs-motion-h">
     <div class="section-head">
+      <span class="sec-num">06</span>
       <h2 id="cs-motion-h">Motion and theming, same discipline</h2>
-      <span class="dc-label">06 — Also recovered</span>
+      <span class="dc-label">Also recovered</span>
     </div>
     <div class="grid-body">
-      <p class="cs-prose">The rebuilt mark animates: a seamless 4-second loop where bubbles detach from the liquid under constant-flux inflation (r ∝ t<sup>1/3</sup>), rise under Stokes drag toward a terminal velocity that equals the conveyor's handoff speed — the physics lands the animation constraint for free — and ring with a damped quadrupole wobble. The liquid surface is a translating sine strip: a traveling wave is its own shape in uniform translation, so the loop seals by periodicity, not by careful keyframing. Theming collapsed to a single input: <span class="dc-num" style="font-weight:400">currentColor</span> drives structure, liquid strata, and effects through masks that encode alpha, not color — one asset, every theme, verified by pixel-sampling through the actual CSS inheritance path.</p>
+      <p class="cs-prose">The rebuilt mark animates: a seamless 4-second loop where bubbles detach from the liquid under constant-flux inflation (r ∝ t<sup>1/3</sup>), rise under Stokes drag toward a terminal velocity that equals the conveyor's handoff speed — the physics lands the animation constraint for free — and ring with a damped quadrupole wobble. The liquid surface is a translating sine strip: a traveling wave is its own shape in uniform translation, so the loop seals by periodicity, not by careful keyframing. Theming collapsed to a single input: <code class="cs-code">currentColor</code> drives structure, liquid strata, and effects through masks that encode alpha, not color — one asset, every theme, verified by pixel-sampling through the actual CSS inheritance path.</p>
       <div class="cs-eq">v(t) = v_t·(1 − e^(−t/τ)),  v_t = conveyor speed      ε(t) = ε₀·e^(−λt)·cos(ωt)</div>
     </div>
   </section>
@@ -369,8 +377,9 @@ compatibility), so agreement cancels and only drift renders, color-coded per dif
 
   <section class="section" aria-labelledby="cs-ledger-h">
     <div class="section-head">
+      <span class="sec-num">07</span>
       <h2 id="cs-ledger-h">Ledger</h2>
-      <span class="dc-label">07 — Results</span>
+      <span class="dc-label">Results</span>
     </div>
     <div class="grid-body">
       <div class="dc-table-wrap">
@@ -389,19 +398,19 @@ compatibility), so agreement cancels and only drift renders, color-coded per dif
           </tbody>
         </table>
       </div>
-      <p class="cs-prose" style="margin-top:16px;font-size:15px">Method framing, honestly calibrated: this is human-in-the-loop iterative refinement with closed-form fits and an AI vision critic — one documented execution of a method, not a theory. The execution trace, assets, and per-frame data are available on request.</p>
+      <p class="cs-prose cs-note">Method framing, honestly calibrated: this is human-in-the-loop iterative refinement with closed-form fits and an AI vision critic — one documented execution of a method, not a theory. The execution trace, assets, and per-frame data are available on request.</p>
     </div>
   </section>
 
   <section id="contact" class="section" aria-labelledby="cs-hire-h">
     <div class="contact dc-invert">
       <div class="contact-copy">
-        <p class="dc-label" style="margin-bottom:20px">08 — Hire this rigor</p>
+        <p class="dc-label">08 — Hire this rigor</p>
         <h2 id="cs-hire-h">The logo was the vehicle. The method is the product.</h2>
         <p>Measurement before modeling, closed-form over curve-fitting, verification as a deliverable, and a vision critic exactly where metrics go blind. If your document pipeline, extraction QA, or AI product needs that discipline — that's the conversation worth having.</p>
       </div>
       <div class="contact-actions">
-        <a class="dc-btn dc-btn--lg" href="https://calendly.com/ismailkattakath/google-meet" target="_blank" rel="noopener">Book a call<span class="dc-sr-only"> (opens in new tab)</span></a>
+        <a class="dc-btn dc-btn--lg dc-btn--fill" href="https://calendly.com/ismailkattakath/google-meet" target="_blank" rel="noopener">Book a call<span class="dc-sr-only"> (opens in new tab)</span></a>
         <a class="dc-btn dc-btn--lg" href="/">More work</a>
         <div class="contact-row">
           <a class="dc-btn" href="https://linkedin.com/in/ismailkattakath" target="_blank" rel="noopener">LinkedIn<span class="dc-sr-only"> (opens in new tab)</span></a>

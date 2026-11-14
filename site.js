@@ -141,29 +141,35 @@
       });
     }
 
-    /* ---- Reveals: only hide what is BELOW the fold, so nothing flashes ---- */
+    /* ---- Fact lists: every fact on wide screens, the top three + a toggle below ----
+       The markup ships <details open>, so without JS nothing is ever hidden. */
+    var mores = doc.querySelectorAll("details.more");
+    if (mores.length && window.matchMedia) {
+      var wide = window.matchMedia("(min-width: 1024px)");
+      var syncMore = function () {
+        Array.prototype.forEach.call(mores, function (d) { d.open = wide.matches; });
+      };
+      syncMore();
+      (wide.addEventListener ? wide.addEventListener.bind(wide, "change") : wide.addListener.bind(wide))(syncMore);
+    }
+
+    /* ---- Reveal: a below-the-fold section's 4px rule grows in on entry. Only the
+       rule moves (styles.css); content is never hidden, so nothing waits on this. ---- */
     if (!reduce && "IntersectionObserver" in window) {
       var sections = doc.querySelectorAll("main > section");
-      var revealables = [];
-      Array.prototype.forEach.call(sections, function (s, i) {
-        var r = s.getBoundingClientRect();
-        if (i === 0 || r.top < window.innerHeight * 0.9) return; /* leave above-fold visible */
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            en.target.classList.add("in-view");
+            io.unobserve(en.target);
+          }
+        });
+      }, { rootMargin: "0px 0px -15% 0px", threshold: 0 });
+      Array.prototype.forEach.call(sections, function (s) {
+        if (s.getBoundingClientRect().top < window.innerHeight * 0.9) return; /* above the fold: already drawn */
         s.classList.add("reveal");
-        revealables.push(s);
+        io.observe(s);
       });
-      var tl = doc.querySelector(".timeline");
-      if (tl) revealables.push(tl);
-      if (revealables.length) {
-        var io = new IntersectionObserver(function (entries) {
-          entries.forEach(function (en) {
-            if (en.isIntersecting) {
-              en.target.classList.add("in-view");
-              io.unobserve(en.target);
-            }
-          });
-        }, { rootMargin: "0px 0px -12% 0px", threshold: 0.12 });
-        revealables.forEach(function (el) { io.observe(el); });
-      }
     }
   });
 

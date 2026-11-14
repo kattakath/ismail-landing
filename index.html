@@ -127,23 +127,23 @@
     </div>
   </section>
 
-  <section class="section" aria-label="At a glance" style="padding-top:clamp(36px,5vw,64px)">
+  <section class="section section--glance" aria-label="At a glance">
     <div class="stat-band">
       <div class="stat"><p class="dc-num stat-num">99.5%</p><p class="dc-label stat-label">Uptime · Homewood rebuild</p></div>
       <div class="stat"><p class="dc-num stat-num">100k+</p><p class="dc-label stat-label">Users · national EFAP platform</p></div>
-      <div class="stat"><p class="dc-num stat-num">4h → 20 min</p><p class="dc-label stat-label">Deploy time · Homewood</p></div>
+      <div class="stat"><p class="dc-num stat-num">4h → 20m</p><p class="dc-label stat-label">Deploy time · Homewood</p></div>
       <div class="stat"><p class="dc-num stat-num">80+</p><p class="dc-label stat-label">App vendors on my pipelines · Silver Creek</p></div>
     </div>
   </section>
 
   <section id="own" class="section" aria-labelledby="own-h">
     <div class="section-head">
+      <span class="sec-num">01</span>
       <h2 id="own-h">What I own for you</h2>
-      <span class="dc-label">01 — Three mandates</span>
+      <span class="dc-label">Three mandates</span>
     </div>
-    <div class="cards grid-body">
-      <article class="card dc-invert card--live">
-        <card-field dot="2" aria-hidden="true"></card-field>
+    <ol class="mandates grid-body" role="list">
+      <li class="mandate">
         <span class="dc-label">Mandate 01</span>
         <h3>The AI platform beneath the model</h3>
         <p>Provider-abstracted inference, a gateway your teams call instead of ten SDKs, cost governance with a real kill-switch, and observability that catches silent retrieval failures before your users do.</p>
@@ -152,9 +152,8 @@
           <span class="dc-chip">Cost governor</span>
           <span class="dc-chip">RAG observability</span>
         </div>
-      </article>
-      <article class="card dc-invert card--live">
-        <card-field dot="2" aria-hidden="true"></card-field>
+      </li>
+      <li class="mandate">
         <span class="dc-label">Mandate 02</span>
         <h3>The multi-tenant SaaS backbone</h3>
         <p>Tenant isolation you can prove, not hope for — and the billing spine that turns AI usage into revenue: metering, overage, trial-to-paid lifecycle, webhook reconciliation.</p>
@@ -163,9 +162,8 @@
           <span class="dc-chip">Stripe metering</span>
           <span class="dc-chip">Aurora Serverless v2</span>
         </div>
-      </article>
-      <article class="card dc-invert card--live">
-        <card-field dot="2" aria-hidden="true"></card-field>
+      </li>
+      <li class="mandate">
         <span class="dc-label">Mandate 03</span>
         <h3>The cloud and the release path</h3>
         <p>Infrastructure as code on AWS, keyless CI/CD, staging as a required gate, migrations that cannot race. Deployment stops being the risky part of your week.</p>
@@ -174,81 +172,111 @@
           <span class="dc-chip">GitHub OIDC</span>
           <span class="dc-chip">Zero-downtime</span>
         </div>
-      </article>
-    </div>
+      </li>
+    </ol>
   </section>
 
   <section id="work" class="section" aria-labelledby="work-h">
     <div class="section-head">
+      <span class="sec-num">02</span>
       <h2 id="work-h">Selected work</h2>
-      <span class="dc-label">02 — Three systems, a method, open source</span>
+      <span class="dc-label">Three systems, a method, open source</span>
     </div>
 
     <div class="grid-body">
-      <article class="work-item">
-        <div class="work-head">
+      <article class="work">
+        <div class="work-key">
           <div class="work-tags">
             <span class="dc-chip dc-chip--on">Current</span>
             <span class="dc-meta">Mar 2026 →</span>
           </div>
-          <h3>Takeoff — AEC estimation AI, multi-tenant on AWS</h3>
           <a class="dc-btn dc-btn--text" href="https://www.infin8it.ca/" target="_blank" rel="noopener">Infin8 Information Technologies<span class="dc-sr-only"> (opens in new tab)</span></a>
+        </div>
+        <div class="work-body">
+          <h3>Takeoff — AEC estimation AI, multi-tenant on AWS</h3>
           <p>Principal engineer for a digital-takeoff SaaS on AWS Canada Central. I own the backend and the cloud beneath it.</p>
-        </div>
-        <div class="work-facts">
-          <p class="fact">Python / FastAPI on Lambda, multi-stack AWS CDK</p>
-          <p class="fact">Multi-tenant Cognito security — JWT audience isolation so cross-tenant escalation is impossible by construction</p>
-          <p class="fact">Stripe free / trial / paid lifecycle with AI usage metering, overage billing and reconciliation</p>
-          <p class="fact">Document AI (batch OCR / vision, LiteLLM) with a fail-closed cost kill-switch for the worker fleet</p>
-          <p class="fact">Keyless GitHub OIDC deploys with staging as a required gate</p>
+          <ul class="facts">
+            <li>Multi-tenant Cognito security — JWT audience isolation so cross-tenant escalation is impossible by construction</li>
+            <li>Stripe free / trial / paid lifecycle with AI usage metering, overage billing and reconciliation</li>
+            <li>Document AI (batch OCR / vision, LiteLLM) with a fail-closed cost kill-switch for the worker fleet</li>
+          </ul>
+          <details class="more" open>
+            <summary>2 more</summary>
+            <ul class="facts">
+              <li>Python / FastAPI on Lambda, multi-stack AWS CDK</li>
+              <li>Keyless GitHub OIDC deploys with staging as a required gate</li>
+            </ul>
+          </details>
         </div>
       </article>
 
-      <article class="work-item">
-        <div class="work-head">
-          <p class="dc-meta" style="margin-bottom:18px">Aug 2024 — Mar 2026</p>
-          <h3>One inference layer, three providers</h3>
+      <article class="work">
+        <div class="work-key">
+          <p class="dc-meta">Aug 2024 — Mar 2026</p>
           <a class="dc-btn dc-btn--text" href="https://silvercreek.ai" target="_blank" rel="noopener">Silver Creek Insights<span class="dc-sr-only"> (opens in new tab)</span></a>
-          <p>GenAI infrastructure: provider-abstracted inference, RAG and MCP implementations, and a unified model-and-tools gateway.</p>
+          <dl class="key-rows">
+            <div class="key-row"><dt class="dc-num">~25%</dt><dd>lower inference cost — multi-GPU serving on vLLM / Kubernetes</dd></div>
+            <div class="key-row"><dt class="dc-num">~40%</dt><dd>lower latency on that platform</dd></div>
+            <div class="key-row"><dt class="dc-num">80+</dt><dd>app vendors served by optimized image-manipulation pipelines</dd></div>
+          </dl>
         </div>
-        <div class="work-facts">
-          <p class="fact">Multi-GPU inference serving on vLLM / Kubernetes — ~25% cost and ~40% latency reduction on that platform</p>
-          <p class="fact">One provider switch across local Ollama and a LiteLLM proxy — identical generation code runs free-local or managed-cloud</p>
-          <p class="fact">Optimized image-manipulation pipelines serving 80+ app vendors</p>
-          <p class="fact">Snowflake AI agents with granular access control and data-residency compliance</p>
-          <p class="fact">Multi-agent orchestration and human-in-the-loop review UIs, productionized with IaC and CI/CD</p>
-          <p class="fact">Built DontSell.ai solo — event-driven AI-SDR platform on Cloud Run: HMAC webhooks, idempotent upserts, approval-gated human-in-the-loop drafts</p>
+        <div class="work-body">
+          <h3>One inference layer, three providers</h3>
+          <p>GenAI infrastructure: provider-abstracted inference, RAG and MCP implementations, and a unified model-and-tools gateway.</p>
+          <ul class="facts">
+            <li>One provider switch across local Ollama and a LiteLLM proxy — identical generation code runs free-local or managed-cloud</li>
+            <li>Built DontSell.ai solo — event-driven AI-SDR platform on Cloud Run: HMAC webhooks, idempotent upserts, approval-gated human-in-the-loop drafts</li>
+            <li>Snowflake AI agents with granular access control and data-residency compliance</li>
+          </ul>
+          <details class="more" open>
+            <summary>1 more</summary>
+            <ul class="facts">
+              <li>Multi-agent orchestration and human-in-the-loop review UIs, productionized with IaC and CI/CD</li>
+            </ul>
+          </details>
         </div>
       </article>
 
-      <article class="work-item">
-        <div class="work-head">
-          <p class="dc-meta" style="margin-bottom:18px">Oct 2017 — Jul 2024</p>
-          <h3>A national mental-health platform, rescued</h3>
+      <article class="work">
+        <div class="work-key">
+          <p class="dc-meta">Oct 2017 — Jul 2024</p>
           <a class="dc-btn dc-btn--text" href="https://homewoodhealth.com" target="_blank" rel="noopener">Homewood Health<span class="dc-sr-only"> (opens in new tab)</span></a>
-          <p>Canada's leading digital mental-health service, delivering EFAP and CBT to 100k+ employees. I inherited it abandoned and undocumented.</p>
+          <dl class="key-rows">
+            <div class="key-row"><dt class="dc-num">99.5%</dt><dd>uptime after the rebuild</dd></div>
+            <div class="key-row"><dt class="dc-num">25k+</dt><dd>users on OAuth 2.0 PKCE SSO with Microsoft Identity</dd></div>
+            <div class="key-row"><dt class="dc-num">5+</dt><dd>partner organizations federated over SAML 2.0</dd></div>
+            <div class="key-row"><dt class="dc-num">20 min</dt><dd>deploy time, down from four hours</dd></div>
+            <div class="key-row"><dt class="dc-num">0</dt><dd>downtime: DigitalOcean → AWS migration on Terraform</dd></div>
+          </dl>
         </div>
-        <div class="work-metrics">
-          <p class="metric"><span>Uptime after the rebuild</span><span class="dc-num">99.5%</span></p>
-          <p class="metric"><span>Users on OAuth 2.0 PKCE SSO with Microsoft Identity</span><span class="dc-num">25k+</span></p>
-          <p class="metric"><span>Partner organizations federated over SAML 2.0</span><span class="dc-num">5+</span></p>
-          <p class="metric"><span>Deploy time, down from four hours</span><span class="dc-num">20 min</span></p>
-          <p class="metric"><span>DigitalOcean → AWS migration on Terraform</span><span class="dc-num dc-num--sm">Zero downtime</span></p>
+        <div class="work-body">
+          <h3>A national mental-health platform, rescued</h3>
+          <p>Canada's leading digital mental-health service, delivering EFAP and CBT to 100k+ employees. I inherited it abandoned and undocumented, and rebuilt it.</p>
         </div>
       </article>
-      <article class="work-item">
-        <div class="work-head">
-          <p class="dc-meta" style="margin-bottom:18px">Method · case study</p>
-          <h3>De-tracing: 92 segments → 14 primitives, 1.5% residual</h3>
+
+      <article class="work">
+        <div class="work-key">
+          <p class="dc-meta">Method · case study</p>
           <a class="dc-btn dc-btn--text" href="/case-studies/detracing/">Read the case study</a>
-          <p>An analysis-by-synthesis loop, with an AI vision critic, recovered the design system buried inside an auto-traced logo.</p>
+          <dl class="key-rows">
+            <div class="key-row"><dt class="dc-num">92 → 14</dt><dd>traced segments → parametric primitives</dd></div>
+            <div class="key-row"><dt class="dc-num">1.5%</dt><dd>final residual, every unit of it declared</dd></div>
+          </dl>
+        </div>
+        <div class="work-body">
+          <h3>De-tracing an auto-traced logo</h3>
+          <p>An analysis-by-synthesis loop — measure, fit closed-form, render, diff — with an AI vision model as the critic recovered the design system buried inside an auto-traced logo.</p>
         </div>
       </article>
-      <article class="work-item">
-        <div class="work-head">
-          <p class="dc-meta" style="margin-bottom:18px">Open source</p>
-          <h3>nix-config — a declarative aarch64 fleet</h3>
+
+      <article class="work">
+        <div class="work-key">
+          <p class="dc-meta">Open source</p>
           <a class="dc-btn dc-btn--text" href="https://github.com/kattakath/nix-config" target="_blank" rel="noopener">kattakath/nix-config<span class="dc-sr-only"> (opens in new tab)</span></a>
+        </div>
+        <div class="work-body">
+          <h3>nix-config — a declarative aarch64 fleet</h3>
           <p>One flake for a Mac, a Raspberry Pi server and VMs — CI-gated, secrets via agenix.</p>
         </div>
       </article>
@@ -257,15 +285,16 @@
 
   <section class="section" aria-labelledby="how-h">
     <div class="section-head">
+      <span class="sec-num">03</span>
       <h2 id="how-h">How I work</h2>
-      <span class="dc-label">03 — What you can rely on</span>
+      <span class="dc-label">What you can rely on</span>
     </div>
-    <div class="matrix grid-body">
+    <div class="principles grid-body">
       <div>
         <h3>Incidents become invariants</h3>
         <p>Idempotency is a reflex, not a retro item — a platform-wide contract across the whole Lambda fleet, advisory-locked migrations, poison-message handling. Every postmortem ends as a CI-enforced guard, so the same failure cannot recur quietly.</p>
       </div>
-      <div class="dc-invert">
+      <div>
         <h3>Security by construction</h3>
         <p>Least-privilege IAM, rotation-aware caching, fail-closed gates, no stored keys in CI. Tenant boundaries are chosen so escalation is structurally impossible rather than merely unlikely — and the same discipline shows up in unpaid side projects.</p>
       </div>
@@ -278,10 +307,11 @@
 
   <section class="section" aria-labelledby="career-h">
     <div class="section-head">
+      <span class="sec-num">04</span>
       <h2 id="career-h">Since 2010, seven teams</h2>
-      <span class="dc-label">04 — Career</span>
+      <span class="dc-label">Career</span>
     </div>
-    <div class="timeline grid-body dc-invert">
+    <div class="timeline grid-body">
       <div class="tl-axis" aria-hidden="true">
         <span data-year="2010" style="--p:0">2010</span>
         <span data-year="2014" style="--p:23.7">2014</span>
@@ -345,85 +375,41 @@
 
   <section id="stack" class="section" aria-labelledby="stack-h">
     <div class="section-head">
+      <span class="sec-num">05</span>
       <h2 id="stack-h">Stack</h2>
-      <span class="dc-label">05 — Working vocabulary</span>
+      <span class="dc-label">Working vocabulary</span>
     </div>
-    <div class="stack grid-body">
-      <div class="stack-group">
-        <span class="dc-label">Core technologies</span>
-        <div class="chips">
-          <span class="dc-chip">Node.js</span><span class="dc-chip">React</span>
-          <span class="dc-chip">TypeScript</span><span class="dc-chip">Python</span>
-          <span class="dc-chip">FastAPI</span><span class="dc-chip">ExpressJS</span>
-        </div>
-      </div>
-      <div class="stack-group">
-        <span class="dc-label">Cross-platform</span>
-        <div class="chips">
-          <span class="dc-chip">React Native</span><span class="dc-chip">Flutter</span>
-        </div>
-      </div>
-      <div class="stack-group">
-        <span class="dc-label">AI / ML stack</span>
-        <div class="chips">
-          <span class="dc-chip">LiteLLM</span><span class="dc-chip">RAG · pgvector</span>
-          <span class="dc-chip">Document AI · OCR</span><span class="dc-chip">vLLM / TGI</span>
-          <span class="dc-chip">Multi-agent</span><span class="dc-chip">MCP</span>
-          <span class="dc-chip">Ollama / local LLMs</span><span class="dc-chip">ComfyUI / diffusion</span>
-          <span class="dc-chip">Snowflake Cortex</span><span class="dc-chip">Strands Agents</span>
-        </div>
-      </div>
-      <div class="stack-group">
-        <span class="dc-label">Multi-tenant SaaS &amp; billing</span>
-        <div class="chips">
-          <span class="dc-chip">Multi-tenant architecture</span><span class="dc-chip">Stripe billing</span>
-          <span class="dc-chip">AI usage metering</span><span class="dc-chip">Subscription lifecycle</span>
-          <span class="dc-chip">Webhook reconciliation</span><span class="dc-chip">Valkey</span>
-        </div>
-      </div>
-      <div class="stack-group">
-        <span class="dc-label">Databases</span>
-        <div class="chips">
-          <span class="dc-chip">PostgreSQL</span><span class="dc-chip">Aurora Serverless v2</span>
-          <span class="dc-chip">MongoDB</span><span class="dc-chip">Redis</span>
-        </div>
-      </div>
-      <div class="stack-group">
-        <span class="dc-label">DevOps &amp; CI/CD</span>
-        <div class="chips">
-          <span class="dc-chip">AWS</span><span class="dc-chip">AWS CDK</span>
-          <span class="dc-chip">Kubernetes</span><span class="dc-chip">Docker</span>
-          <span class="dc-chip">GitHub Actions</span><span class="dc-chip">Terraform</span>
-          <span class="dc-chip">Nix</span>
-        </div>
-      </div>
-      <div class="stack-group">
-        <span class="dc-label">Authentication &amp; security</span>
-        <div class="chips">
-          <span class="dc-chip">AWS Cognito</span><span class="dc-chip">OAuth 2.0</span>
-          <span class="dc-chip">PKCE</span><span class="dc-chip">SAML 2.0</span>
-          <span class="dc-chip">JWT</span>
-        </div>
-      </div>
-    </div>
+    <dl class="stack grid-body">
+      <div class="stack-row"><dt class="dc-label">Languages &amp; APIs</dt><dd>Python · TypeScript · FastAPI · React</dd></div>
+      <div class="stack-row"><dt class="dc-label">AI / ML</dt><dd>LiteLLM · RAG / pgvector · vLLM · MCP · Document AI / OCR</dd></div>
+      <div class="stack-row"><dt class="dc-label">SaaS &amp; billing</dt><dd>Multi-tenant architecture · Stripe metering</dd></div>
+      <div class="stack-row"><dt class="dc-label">Data</dt><dd>PostgreSQL · Aurora Serverless v2</dd></div>
+      <div class="stack-row"><dt class="dc-label">Cloud &amp; delivery</dt><dd>AWS · AWS CDK · Terraform · Kubernetes · GitHub Actions</dd></div>
+      <div class="stack-row"><dt class="dc-label">Identity</dt><dd>AWS Cognito · OAuth 2.0 / PKCE · SAML 2.0</dd></div>
+    </dl>
   </section>
 
   <section id="contact" class="section" aria-labelledby="contact-h">
-    <div class="contact dc-invert">
+    <div class="section-head">
+      <span class="sec-num">06</span>
+      <h2 id="contact-h">Contact</h2>
+      <span class="dc-label">Roles and consulting</span>
+    </div>
+    <div class="contact dc-invert grid-body">
       <dither-field dot="2" aria-hidden="true"></dither-field>
       <div class="contact-copy">
-        <p class="dc-label" style="margin-bottom:20px">Open to principal &amp; staff roles · and consulting</p>
-        <h2 id="contact-h">Bring me the hardest problem in your AI stack.</h2>
+        <p class="dc-label">Open to principal &amp; staff roles · and consulting</p>
+        <p class="contact-title">Bring me the hardest problem in your AI stack.</p>
         <p>Correctness, cost or observability — that's the conversation worth having.</p>
       </div>
       <div class="contact-actions">
-        <a class="dc-btn dc-btn--lg" href="https://calendly.com/ismailkattakath/google-meet" target="_blank" rel="noopener">Book a call<span class="dc-sr-only"> (opens in new tab)</span></a>
+        <a class="dc-btn dc-btn--lg dc-btn--fill" href="https://calendly.com/ismailkattakath/google-meet" target="_blank" rel="noopener">Book a call<span class="dc-sr-only"> (opens in new tab)</span></a>
         <a class="dc-btn dc-btn--lg" href="mailto:ismail@kattakath.com">ismail@kattakath.com</a>
         <div class="contact-row">
           <a class="dc-btn" href="https://linkedin.com/in/ismailkattakath" target="_blank" rel="noopener">LinkedIn<span class="dc-sr-only"> (opens in new tab)</span></a>
           <a class="dc-btn" href="https://github.com/ismailkattakath" target="_blank" rel="noopener">GitHub<span class="dc-sr-only"> (opens in new tab)</span></a>
         </div>
-        <p class="dc-meta" style="margin-top:6px">Advisory · fractional principal · build-and-hand-over. Remote from Toronto.</p>
+        <p class="dc-meta">Advisory · fractional principal · build-and-hand-over. Remote from Toronto.</p>
       </div>
     </div>
   </section>
